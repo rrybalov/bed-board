@@ -1,16 +1,16 @@
 /*
- * Open Beds — facility details editor, shared by the provider form and the admin page.
+ * Allegheny Bed Board — facility details editor, shared by the provider form and the admin page.
  * Lets a provider (or DHS) keep a facility's profile current: levels of care, who they take
  * and don't, who they serve, intake and walk-in hours, what they need before admission,
  * situation-specific context, payment, contact.
  *
- *   OpenBedsProfile.fields(site, prefix, {open})  → HTML (a <details> panel)
- *   OpenBedsProfile.read(site, prefix)            → { fit, reach, changes: [plain-English lines], errors }
- *   OpenBedsProfile.TOPICS                        → situation topics shown on the board
+ *   BedBoardProfile.fields(site, prefix, {open})  → HTML (a <details> panel)
+ *   BedBoardProfile.read(site, prefix)            → { fit, reach, changes: [plain-English lines], errors }
+ *   BedBoardProfile.TOPICS                        → situation topics shown on the board
  */
 (function (root) {
   "use strict";
-  var OB = root.OB, S = root.OpenBedsStore, esc = OB.esc;
+  var OB = root.OB, S = root.BedBoardStore, esc = OB.esc;
   function $(id) { return document.getElementById(id); }
   function val(id) { var el = $(id); return el ? el.value.trim() : ""; }
   function lines(id) { return val(id) ? val(id).split(/\n/).map(function (x) { return x.trim(); }).filter(Boolean) : []; }
@@ -158,5 +158,5 @@
     return { fit: fit, reach: reach, changes: ch, errors: errors, changed: ch.length > 0 };
   }
 
-  root.OpenBedsProfile = { fields: fields, read: read, TOPICS: TOPICS, same: same };
+  root.BedBoardProfile = { fields: fields, read: read, TOPICS: TOPICS, same: same };
 })(window);

@@ -1,5 +1,5 @@
 /*
- * Open Beds — provider and site profiles.
+ * Allegheny Bed Board — provider and site profiles.
  *
  * Profiles change rarely (location, what each site offers, admissions line).
  * Daily counts are NOT stored here; they arrive as reports (email, provider
@@ -13,7 +13,7 @@
  * This repository is public: no staff names, personal emails or direct lines.
  */
 (function (root) {
-  var OPEN_BEDS_SITES = {
+  var BED_BOARD_SITES = {
     orgs: [
       { id: "acadia", name: "Acadia Healthcare — PA Addiction Centers (PAC)", short: "Acadia (PAC)", senderDomains: ["acadiahealthcare.com"] },
       { id: "upmc", name: "UPMC", short: "UPMC", senderDomains: ["upmc.edu"] },
@@ -117,13 +117,13 @@
     "gaiser": { levels: ["35", "21", "1"], serves: "Adults · separate men’s and women’s programs", takes: ["MAT"], payer: "Most Western PA SCA funding", pay: { sca: true }, known: ["moud"], source: ["email", "worksheet"] },
     "spiritlife": { levels: ["wm37", "35"], takes: ["Transportation offered"], source: ["worksheet", "email"] }
   };
-  OPEN_BEDS_SITES.sites.forEach(function (s) { s.fit = FIT[s.id] || { source: [] }; });
+  BED_BOARD_SITES.sites.forEach(function (s) { s.fit = FIT[s.id] || { source: [] }; });
 
   /*
    * pay (inside fit): payment types a site is known to take (true) or not take (false).
    * Missing = not on file. The board's payment filter hides only sites known NOT to take it.
    */
-  OPEN_BEDS_SITES.payTypes = [
+  BED_BOARD_SITES.payTypes = [
     ["medicaid", "Medical Assistance (HealthChoices)", "Medical Assistance"],
     ["sca", "County / SCA funding (uninsured)", "SCA funding"],
     ["private", "Private insurance", "private insurance"],
@@ -184,15 +184,15 @@
     "gaiser": ["165 Old Plank Rd, Butler, PA 16002", "PA 211"],
     "spiritlife": ["170 Father Martin Telenson Ln, Penn Run, PA 15765", "startyourrecovery.org"]
   };
-  OPEN_BEDS_SITES.sites.forEach(function (s) {
+  BED_BOARD_SITES.sites.forEach(function (s) {
     var r = REACH[s.id] || {}, ad = ADDRESS[s.id] || [];
     s.reach = { phone: s.contact || r.phone || null, phoneFrom: s.contact ? "provider’s bed email" : r.phoneFrom || null, email: r.email || null, emailFrom: r.emailFrom || null, web: r.web || null,
       address: ad[0] || null, addressFrom: ad[1] || null };
     s.contact = s.reach.phone;
   });
 
-  OPEN_BEDS_SITES.sites.forEach(function (s) { var g = GEO[s.id]; s.geo = g ? { lat: g[0], lng: g[1], precision: g[2] } : null; });
-  OPEN_BEDS_SITES.levels = [
+  BED_BOARD_SITES.sites.forEach(function (s) { var g = GEO[s.id]; s.geo = g ? { lat: g[0], lng: g[1], precision: g[2] } : null; });
+  BED_BOARD_SITES.levels = [
     ["wm4", "WM 4", "Medically managed withdrawal"], ["wm37", "WM 3.7", "Medically monitored withdrawal"],
     ["4", "4", "Medically managed inpatient"], ["37", "3.7", "Medically monitored inpatient"],
     ["35", "3.5", "Clinically managed residential"], ["25", "2.5", "Partial hospitalization (PHP)"],
@@ -202,7 +202,7 @@
   // Who a facility serves and when it does intake (the filters LA County's SBAT offers).
   // In each facility's fit: populations / access = { key: true | false } (missing = not on file),
   // languages = [] (an array, even empty, means the provider has told us), hours = { intake, walkin }.
-  OPEN_BEDS_SITES.populations = [
+  BED_BOARD_SITES.populations = [
     ["pregnant", "Pregnant or parenting women", "pregnant and parenting women"],
     ["cooccurring", "Co-occurring mental health", "co-occurring mental health"],
     ["moud", "Continues MOUD (methadone, buprenorphine)", "people on MOUD"],
@@ -212,19 +212,19 @@
     ["lgbtq", "LGBTQIA+", "LGBTQIA+ people"],
     ["disability", "People with disabilities", "people with disabilities"]
   ];
-  OPEN_BEDS_SITES.access = [
+  BED_BOARD_SITES.access = [
     ["walkin", "Walk-in intake", "walk-in intake"],
     ["evening", "Intake after 5 PM", "evening intake"],
     ["weekend", "Weekend intake", "weekend intake"],
     ["allday", "Admits 24/7", "24/7 admissions"]
   ];
-  OPEN_BEDS_SITES.languages = ["Spanish", "American Sign Language", "Arabic", "Chinese", "French", "Haitian Creole", "Nepali", "Russian", "Swahili", "Ukrainian", "Vietnamese"];
+  BED_BOARD_SITES.languages = ["Spanish", "American Sign Language", "Arabic", "Chinese", "French", "Haitian Creole", "Nepali", "Russian", "Swahili", "Ukrainian", "Vietnamese"];
   // The little we know from the emails and the worksheet; everything else is "not on file" until providers fill it in.
   (function () {
     var known = { "silvermist-pgh": { populations: { cooccurring: true } }, "gaiser": { populations: { moud: true } } };
-    OPEN_BEDS_SITES.sites.forEach(function (s) { if (known[s.id]) Object.assign(s.fit, known[s.id]); });
+    BED_BOARD_SITES.sites.forEach(function (s) { if (known[s.id]) Object.assign(s.fit, known[s.id]); });
   })();
 
-  if (typeof module !== "undefined" && module.exports) module.exports = OPEN_BEDS_SITES;
-  else root.OPEN_BEDS_SITES = OPEN_BEDS_SITES;
+  if (typeof module !== "undefined" && module.exports) module.exports = BED_BOARD_SITES;
+  else root.BED_BOARD_SITES = BED_BOARD_SITES;
 })(typeof window !== "undefined" ? window : this);

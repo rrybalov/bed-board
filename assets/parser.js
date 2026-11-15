@@ -1,11 +1,11 @@
 /*
- * Open Beds — email parser.
+ * Allegheny Bed Board — email parser.
  *
  * Turns a provider's bed email into per-site counts. The same code runs in the
  * browser (admin "simulate an email") and server-side behind the email alias
  * (see docs/architecture.md).
  *
- *   parseEmail({ from, subject, body }, OPEN_BEDS_SITES) ->
+ *   parseEmail({ from, subject, body }, BED_BOARD_SITES) ->
  *     { orgId, template, confidence: "high"|"medium"|"low", entries, warnings, summary }
  *
  * confidence  high   recognized sender + recognized layout, every count placed
@@ -253,5 +253,5 @@
 
   var api = { parseEmail: parseEmail, stripQuoted: stripQuoted, orgFor: orgFor };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
-  else root.OpenBedsParser = api;
+  else root.BedBoardParser = api;
 })(typeof window !== "undefined" ? window : this);

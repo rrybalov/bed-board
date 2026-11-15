@@ -1,5 +1,5 @@
 /*
- * Open Beds — bed-count editor, shared by the provider form and the admin page.
+ * Allegheny Bed Board — bed-count editor, shared by the provider form and the admin page.
  * One block per site, built from the site's profile layout (data/sites.js).
  *
  * Inputs accept a number (0–999) or NA. Blank means "no change for this bed".
@@ -149,7 +149,7 @@
   document.addEventListener("click", function (ev) {
     var btn = ev.target.closest && ev.target.closest("[data-expand]");
     if (!btn) return;
-    var sec = btn.closest(".site-edit"), S = root.OpenBedsStore;
+    var sec = btn.closest(".site-edit"), S = root.BedBoardStore;
     var site = S.siteById[sec.getAttribute("data-site")];
     var kept = {};
     Array.prototype.forEach.call(sec.querySelectorAll("input, select"), function (el) { kept[el.id] = el.value; });
@@ -166,5 +166,5 @@
     (firstNew || fresh.querySelector("input")).focus();
   });
 
-  root.OpenBedsEditor = { siteBlock: siteBlock, readSite: readSite, fullLayout: fullLayout, fmtDay: fmtDay };
+  root.BedBoardEditor = { siteBlock: siteBlock, readSite: readSite, fullLayout: fullLayout, fmtDay: fmtDay };
 })(window);

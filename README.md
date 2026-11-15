@@ -1,4 +1,4 @@
-# Open Beds
+# Allegheny Bed Board
 
 A live open-bed board for Pathways intake staff in Allegheny County. It answers one question: **where can I send someone today?**
 

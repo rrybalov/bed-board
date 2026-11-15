@@ -1,4 +1,4 @@
-## Accessibility Audit: Open Beds (bed board, provider update form, DHS admin)
+## Accessibility Audit: Allegheny Bed Board (bed board, provider update form, DHS admin)
 **Standard:** WCAG 2.2 AA | **Date:** November 13, 2026
 
 Method (from the design `accessibility-review` skill, extended to 2.2): scripted automated scan of 22 page states (board list, filtered, locations open, map, All sites, Updates, referral and source dialogs, toast; update form with details, new facility, new provider, errors; admin updates, simulator, three dialogs, settings; phone 390px for each page), keyboard-only pass over ~400 tab stops, dialog focus tests, reflow at 320px (= 400% zoom), WCAG 1.4.12 text-spacing override, contrast measured on every rendered text node and control border, and a screen-reader tree review. Rerun with `node tests/a11y.js` while serving the folder on port 8765.

@@ -1,16 +1,16 @@
 /*
- * Open Beds — "new facility" form, shared by the admin page and the provider update form.
+ * Allegheny Bed Board — "new facility" form, shared by the admin page and the provider update form.
  * Every bed type is offered on a new facility; blanks mean "not reported yet".
  *
- *   OpenBedsFacility.fields(prefix)        → HTML for one facility (details, contact, who they take, beds)
- *   OpenBedsFacility.read(prefix)          → { errors, data, entry }   (entry has siteId "new")
- *   OpenBedsFacility.build(data, orgId, entry, geo) → { site, entry } ready for store.addSites
- *   OpenBedsFacility.providerFields(prefix) / readProvider(prefix) → a new provider (name + email domain)
- *   OpenBedsFacility.geocode(text)         → Promise<{lat, lng} | null>
+ *   BedBoardFacility.fields(prefix)        → HTML for one facility (details, contact, who they take, beds)
+ *   BedBoardFacility.read(prefix)          → { errors, data, entry }   (entry has siteId "new")
+ *   BedBoardFacility.build(data, orgId, entry, geo) → { site, entry } ready for store.addSites
+ *   BedBoardFacility.providerFields(prefix) / readProvider(prefix) → a new provider (name + email domain)
+ *   BedBoardFacility.geocode(text)         → Promise<{lat, lng} | null>
  */
 (function (root) {
   "use strict";
-  var OB = root.OB, ED = root.OpenBedsEditor, S = root.OpenBedsStore, esc = OB.esc;
+  var OB = root.OB, ED = root.BedBoardEditor, S = root.BedBoardStore, esc = OB.esc;
 
   var FULL_LAYOUT = [
     { type: "detox", sexes: ["male", "female", "any"] },
@@ -118,5 +118,5 @@
       .then(function (geos) { return list.map(function (r, i) { return build(r.data, orgId, r.entry, geos[i], from); }); });
   }
 
-  root.OpenBedsFacility = { fields: fields, read: read, build: build, buildAll: buildAll, providerFields: providerFields, readProvider: readProvider, geocode: geocode, FULL_LAYOUT: FULL_LAYOUT };
+  root.BedBoardFacility = { fields: fields, read: read, build: build, buildAll: buildAll, providerFields: providerFields, readProvider: readProvider, geocode: geocode, FULL_LAYOUT: FULL_LAYOUT };
 })(window);

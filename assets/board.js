@@ -1,8 +1,8 @@
-/* Open Beds — public board. Reads the store; re-renders when any source updates it. */
+/* Allegheny Bed Board — public board. Reads the store; re-renders when any source updates it. */
 (function () {
   "use strict";
 
-  var S = window.OpenBedsStore, OB = window.OB, ED = window.OpenBedsEditor, esc = OB.esc;
+  var S = window.BedBoardStore, OB = window.OB, ED = window.BedBoardEditor, esc = OB.esc;
   var REGIONS = S.sites.regions;
   var BED_TYPES = ["detox", "residential", "php", "outpatient"];
   var TYPE_OPTS = [["any", "Any type"], ["detox", "Detox"], ["residential", "Residential"], ["php", "PHP"], ["outpatient", "Outpatient"]];
@@ -919,8 +919,8 @@
   function optLabel(o) {
     return (o.type === "shared" ? "Detox or rehab (one count)" : TYPE_LABEL[o.type] + " — " + SEXW[o.sex]) + " · " + o.n + " open";
   }
-  function lastInitials() { try { return localStorage.getItem("openbeds.initials") || ""; } catch (e) { return ""; } }
-  function saveInitials(v) { try { localStorage.setItem("openbeds.initials", v); } catch (e) { /* ignore */ } }
+  function lastInitials() { try { return localStorage.getItem("bedboard.initials") || localStorage.getItem("openbeds.initials") || ""; } catch (e) { return ""; } }
+  function saveInitials(v) { try { localStorage.setItem("bedboard.initials", v); } catch (e) { /* ignore */ } }
   function openRefer(siteId) {
     var site = S.boardSites().filter(function (x) { return x.id === siteId; })[0];
     var opts = site ? referOptions(site) : [];

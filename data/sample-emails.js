@@ -103,5 +103,5 @@
 
   var out = { samples: SAMPLE_EMAILS, extras: EXTRA_EMAILS };
   if (typeof module !== "undefined" && module.exports) module.exports = out;
-  else root.OPEN_BEDS_EMAILS = out;
+  else root.BED_BOARD_EMAILS = out;
 })(typeof window !== "undefined" ? window : this);

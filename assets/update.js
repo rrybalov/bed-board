@@ -1,7 +1,7 @@
-/* Open Beds — provider update form: counts for listed facilities (collapsed, with a jump list and a review step), plus new providers and facilities (held for DHS review). */
+/* Allegheny Bed Board — provider update form: counts for listed facilities (collapsed, with a jump list and a review step), plus new providers and facilities (held for DHS review). */
 (function () {
   "use strict";
-  var S = window.OpenBedsStore, OB = window.OB, ED = window.OpenBedsEditor, FAC = window.OpenBedsFacility, PR = window.OpenBedsProfile, esc = OB.esc;
+  var S = window.BedBoardStore, OB = window.OB, ED = window.BedBoardEditor, FAC = window.BedBoardFacility, PR = window.BedBoardProfile, esc = OB.esc;
   function $(id) { return document.getElementById(id); }
   var PREFIX = "pf", NEW = "__new";
   var facs = [], facSeq = 0; // prefixes of the "new facility" blocks on the page

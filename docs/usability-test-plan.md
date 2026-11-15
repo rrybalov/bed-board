@@ -1,4 +1,4 @@
-# Usability test plan — Open Beds
+# Usability test plan — Allegheny Bed Board
 
 **Why:** every design choice so far rests on the bed-search emails, the Bed Search Worksheet and expert review (DHS design principles, NN/g heuristics, WCAG 2.2 AA). No one who will use the board day to day has tried it yet. This round checks the three jobs the board exists for, with the people who do them.
 

@@ -1,4 +1,4 @@
-// WCAG 2.2 AA audit for Open Beds: automated checks run in every page state, plus keyboard,
+// WCAG 2.2 AA audit for Allegheny Bed Board: automated checks run in every page state, plus keyboard,
 // focus, dialog, reflow and text-spacing passes. Usage: python3 -m http.server 8765 & node tests/a11y.js [stub-dir] [json-out]
 const { chromium } = require('playwright');
 const fs = require('fs');

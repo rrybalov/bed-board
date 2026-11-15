@@ -1,4 +1,4 @@
-/* Open Beds — helpers shared by the board, provider form and admin pages. */
+/* Allegheny Bed Board — helpers shared by the board, provider form and admin pages. */
 (function (root) {
   "use strict";
   var TZ = "America/New_York";
@@ -102,8 +102,8 @@
   function setBehindInert(on) {
     Array.prototype.forEach.call(document.querySelectorAll(".hub, .skip"), function (el) { el.inert = !!on; });
   }
-  function remembered(key) { try { return localStorage.getItem("openbeds." + key) || ""; } catch (e) { return ""; } }
-  function remember(key, v) { try { localStorage.setItem("openbeds." + key, v); } catch (e) { /* ignore */ } }
+  function remembered(key) { try { return localStorage.getItem("bedboard." + key) || localStorage.getItem("openbeds." + key) || ""; } catch (e) { return ""; } }
+  function remember(key, v) { try { localStorage.setItem("bedboard." + key, v); } catch (e) { /* ignore */ } }
 
   var dlg = null, returnFocus = null;
   // Shared modal for pages without their own (board): OB.openDialog(html) / OB.closeDialog().
@@ -194,7 +194,7 @@
   // Any [data-report] button on any page opens its source.
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("[data-report]");
-    var S = root.OpenBedsStore;
+    var S = root.BedBoardStore;
     if (!b || !S) return;
     var id = b.getAttribute("data-report");
     var r = S.reports().filter(function (x) { return x.id === id; })[0];

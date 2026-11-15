@@ -1,5 +1,5 @@
 /*
- * Open Beds — store.
+ * Allegheny Bed Board — store.
  *
  * Every change to the board is a REPORT in one append-only log, whatever its source:
  *   source "email"  a provider email to the alias, parsed automatically
@@ -22,7 +22,8 @@
 (function (root) {
   "use strict";
 
-  var KEY = "openbeds.demo.v1";
+  var KEY = "bedboard.demo.v1";
+  var OLD_KEY = "openbeds.demo.v1"; // name before the rename; read once so testers keep their demo data
   var RESEED_AFTER_H = 12;
 
   function createStore(SITES, PARSER, EMAILS) {
@@ -37,7 +38,7 @@
     function nowIso() { return new Date().toISOString(); }
 
     function read() {
-      try { var raw = root.localStorage && root.localStorage.getItem(KEY); if (raw) return JSON.parse(raw); } catch (e) { /* storage blocked */ }
+      try { var raw = root.localStorage && (root.localStorage.getItem(KEY) || root.localStorage.getItem(OLD_KEY)); if (raw) return JSON.parse(raw); } catch (e) { /* storage blocked */ }
       return memory;
     }
     function write(state) {
@@ -401,5 +402,5 @@
     };
   }
 
-  root.OpenBedsStore = createStore(root.OPEN_BEDS_SITES, root.OpenBedsParser, root.OPEN_BEDS_EMAILS);
+  root.BedBoardStore = createStore(root.BED_BOARD_SITES, root.BedBoardParser, root.BED_BOARD_EMAILS);
 })(window);

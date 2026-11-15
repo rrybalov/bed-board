@@ -1,7 +1,7 @@
-/* Open Beds — admin: every update in one list (email, provider form, DHS, referrals), plus settings. */
+/* Allegheny Bed Board — admin: every update in one list (email, provider form, DHS, referrals), plus settings. */
 (function () {
   "use strict";
-  var S = window.OpenBedsStore, OB = window.OB, ED = window.OpenBedsEditor, FAC = window.OpenBedsFacility, PR = window.OpenBedsProfile, esc = OB.esc;
+  var S = window.BedBoardStore, OB = window.OB, ED = window.BedBoardEditor, FAC = window.BedBoardFacility, PR = window.BedBoardProfile, esc = OB.esc;
   function $(id) { return document.getElementById(id); }
   var ui = { tab: "updates", filter: "all", site: "" };
   var lastFocus = null;
@@ -252,7 +252,7 @@
   }
   function loadExample() {
     var key = $("sim-example").value;
-    var all = window.OPEN_BEDS_EMAILS.samples.concat(window.OPEN_BEDS_EMAILS.extras);
+    var all = window.BED_BOARD_EMAILS.samples.concat(window.BED_BOARD_EMAILS.extras);
     var em = all.filter(function (x) { return x.key === key; })[0];
     if (!em) { $("sim-from").value = ""; $("sim-subject").value = ""; $("sim-body").value = ""; return; }
     $("sim-from").value = em.from; $("sim-subject").value = em.subject; $("sim-body").value = em.body;
@@ -438,8 +438,8 @@
   $("set-auto").addEventListener("change", function (e) { S.setSetting("autoPublish", e.target.checked); say(e.target.checked ? "Recognized emails will publish automatically." : "Every email will wait for review."); });
   $("reset").addEventListener("click", function () { S.reset(); say("Demo data reset to the 7 sample emails."); });
 
-  var all = window.OPEN_BEDS_EMAILS.samples.map(function (e) { return [e.key, S.orgById[window.OpenBedsParser.orgFor(e.from, S.sites).id].short + " — " + e.subject]; })
-    .concat(window.OPEN_BEDS_EMAILS.extras.map(function (e) { return [e.key, e.label]; }));
+  var all = window.BED_BOARD_EMAILS.samples.map(function (e) { return [e.key, S.orgById[window.BedBoardParser.orgFor(e.from, S.sites).id].short + " — " + e.subject]; })
+    .concat(window.BED_BOARD_EMAILS.extras.map(function (e) { return [e.key, e.label]; }));
   $("sim-example").innerHTML = '<option value="">Blank</option>' + all.map(function (o) { return '<option value="' + o[0] + '">' + esc(o[1]) + "</option>"; }).join("");
   $("sim-example").value = "standard-format";
   loadExample();
