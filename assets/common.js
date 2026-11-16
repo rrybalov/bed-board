@@ -44,7 +44,7 @@
     if (report.source === "email") return "from " + org + "’s email";
     if (report.source === "form") return "on " + org + "’s update form";
     if (report.source === "admin") return "by DHS staff" + (report.by && report.by.indexOf(": ") > -1 ? " (" + report.by.split(": ")[1] + ")" : "");
-    if (report.source === "call") return "on a Pathways call" + (report.by && report.by.indexOf(": ") > -1 ? " (" + report.by.split(": ")[1] + ")" : "") + (report.call && report.call.wasRight === false ? " \u2014 board corrected" : "");
+    if (report.source === "call") return "on a Pathways call" + (report.by && report.by.indexOf(": ") > -1 ? " (" + report.by.split(": ")[1] + ")" : "") + (report.call && report.call.declined ? " \u2014 declined a client (" + report.call.declined.toLowerCase() + ")" : report.call && report.call.wasRight === false ? " \u2014 board corrected" : "");
     return "";
   }
   // With a report id the chip is a button that opens the source (the email itself, the form submission, or the DHS edit).

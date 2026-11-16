@@ -216,12 +216,13 @@
     ["walkin", "Walk-in intake", "walk-in intake"],
     ["evening", "Intake after 5 PM", "evening intake"],
     ["weekend", "Weekend intake", "weekend intake"],
-    ["allday", "Admits 24/7", "24/7 admissions"]
+    ["allday", "Admits 24/7", "24/7 admissions"],
+    ["transport", "Provides transport", "transport"]
   ];
   BED_BOARD_SITES.languages = ["Spanish", "American Sign Language", "Arabic", "Chinese", "French", "Haitian Creole", "Nepali", "Russian", "Swahili", "Ukrainian", "Vietnamese"];
   // The little we know from the emails and the worksheet; everything else is "not on file" until providers fill it in.
   (function () {
-    var known = { "silvermist-pgh": { populations: { cooccurring: true } }, "gaiser": { populations: { moud: true } } };
+    var known = { "silvermist-pgh": { populations: { cooccurring: true } }, "gaiser": { populations: { moud: true } }, "spiritlife": { access: { transport: true } } };
     BED_BOARD_SITES.sites.forEach(function (s) { if (known[s.id]) Object.assign(s.fit, known[s.id]); });
   })();
 

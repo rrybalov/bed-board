@@ -13,9 +13,11 @@ The board takes counts from three sources and treats them the same way.
 Every change is a **report** in one append-only log:
 
 ```
-report  { id, source: email|form|admin|call|referral, status: published|review|rejected,
+report  { id, source: email|form|admin|call|referral, status: published|review|rejected|undone,
           receivedAt, orgId, by, reason?, email?: {from, subject, body},
-          parse?: {template, confidence, warnings}, entries: [entry] }
+          parse?: {template, confidence, warnings}, entries: [entry],
+          call?: {wasRight, spokeWith, declined?: reason},          // reason only, no client details
+          referral?: {siteId, type, sex, arrival?: {status: arrived|noshow, at, by}} }  // noshow returns the bed
 entry   { siteId, counts: { detox: { male: 3, female: "na" } },
           shared?: { open, types, label }, qualitative?: [...], notes: [] }
 ```

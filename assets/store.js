@@ -150,7 +150,7 @@
     // so forms start from what the board actually shows.
     function current(opts) {
       if (opts && opts.adjusted) {
-        var base = current(), refs = reports().filter(function (r) { return r.source === "referral" && r.status === "published"; });
+        var base = current(), refs = reports().filter(activeRef);
         Object.keys(base).forEach(function (id) {
           var c = base[id], mine = refs.filter(function (r) { return r.referral.siteId === id && new Date(r.receivedAt) > new Date(c.report.receivedAt); });
           if (!mine.length) return;
@@ -169,6 +169,8 @@
       return out;
     }
 
+    // A referral holds a bed until the provider sends a new count, unless Pathways hears the client never arrived.
+    function activeRef(r) { return r.source === "referral" && r.status === "published" && !(r.referral.arrival && r.referral.arrival.status === "noshow"); }
     // Referrals marked since a count was reported take one bed each off that count.
     function applyReferrals(counts, shared, refs) {
       counts = JSON.parse(JSON.stringify(counts || {}));
@@ -207,13 +209,16 @@
     // Profile + current counts, in the shape the board renders.
     function boardSites() {
       var cur = current();
-      var refs = reports().filter(function (r) { return r.source === "referral" && r.status === "published"; });
+      var refs = reports().filter(activeRef);
+      var waiting = reports().filter(function (r) { return r.source === "referral" && r.status === "published" && !r.referral.arrival && (Date.now() - new Date(r.receivedAt)) < 72 * 36e5; });
       return SITES.sites.filter(function (p) { return !p.pending; }).map(function (p) {
         var c = cur[p.id];
         var site = {
           id: p.id, name: p.name, fullName: p.fullName, org: orgById[p.org].short, orgId: p.org, town: p.town, region: p.region,
           population: p.population, services: p.services, contact: p.contact, reach: p.reach || {}, custom: !!p.custom, fit: p.fit || {}, geo: p.geo || null, beds: p.beds
         };
+        // Referrals still waiting for Pathways to hear whether the client arrived (last 3 days).
+        site.pendingArrivals = waiting.filter(function (r) { return r.referral.siteId === p.id; }).map(function (r) { return { id: r.id, type: r.referral.type, sex: r.referral.sex, receivedAt: r.receivedAt, by: r.by }; });
         if (!c) { site.noReport = true; return site; }
         var e = c.entry;
         var mine = refs.filter(function (r) { return r.referral.siteId === p.id && new Date(r.receivedAt) > new Date(c.report.receivedAt); });
@@ -294,7 +299,7 @@
     }
 
     // "The board was wrong": intake heard a different count (or confirmed the same one) on a phone call.
-    // input: { siteId, entry (null = the board was right), by, spokeWith, note }
+    // input: { siteId, entry (null = the board was right), by, spokeWith, note, declined (a reason, never client details) }
     function callUpdate(input) {
       var cur = current({ adjusted: true })[input.siteId];
       var entry = !input.entry ? clone(cur ? cur.entry : { siteId: input.siteId, counts: {} }) : mergeEntry(cur && cur.entry, input.entry);
@@ -303,7 +308,7 @@
       entry.notes = input.note ? [input.note] : (wasRight && cur ? cur.entry.notes || [] : []);
       var site = siteById[input.siteId];
       var r = { id: uid(), source: "call", status: "published", receivedAt: nowIso(), orgId: site ? site.org : null,
-        by: "Pathways" + (input.by ? ": " + input.by : ""), call: { wasRight: wasRight, spokeWith: input.spokeWith || "" }, entries: [entry] };
+        by: "Pathways" + (input.by ? ": " + input.by : ""), call: { wasRight: wasRight, spokeWith: input.spokeWith || "", declined: input.declined || null }, entries: [entry] };
       mutate(function (st) { st.reports.push(r); growLayout(st, entry); hydrate(st); });
       return r;
     }
@@ -329,7 +334,7 @@
     function refer(input) {
       var site = siteById[input.siteId];
       var r = { id: uid(), source: "referral", status: "published", receivedAt: nowIso(), orgId: site ? site.org : null,
-        by: "Pathways" + (input.by ? ": " + input.by : ""), referral: { siteId: input.siteId, type: input.type, sex: input.sex }, entries: [] };
+        by: "Pathways" + (input.by ? ": " + input.by : ""), referral: { siteId: input.siteId, type: input.type, sex: input.sex, arrival: null }, entries: [] };
       mutate(function (st) { st.reports.push(r); });
       return r;
     }
@@ -354,6 +359,16 @@
     }
     function addSite(input) {
       return addSites({ org: input.org, sites: [{ site: input.site, entry: input.entry }], by: "DHS admin" + (input.by ? ": " + input.by : ""), reason: input.reason || "New facility added", source: "admin" });
+    }
+
+    // Pathways heard back after a referral: "arrived", "noshow" (the bed goes back) or null (undo).
+    function confirmArrival(id, status, opts) {
+      mutate(function (st) {
+        st.reports.forEach(function (r) {
+          if (r.id !== id || !r.referral) return;
+          r.referral.arrival = status ? { status: status, at: nowIso(), by: (opts && opts.by) || "Pathways" } : null;
+        });
+      });
     }
 
     function decide(id, status, opts) {
@@ -385,7 +400,7 @@
     return {
       sites: SITES, siteById: siteById, orgById: orgById,
       reports: reports, current: current, boardSites: boardSites,
-      receiveEmail: receiveEmail, submitForm: submitForm, adminUpdate: adminUpdate, callUpdate: callUpdate, refer: refer, addSite: addSite, addSites: addSites, updateProfile: updateProfile,
+      receiveEmail: receiveEmail, submitForm: submitForm, adminUpdate: adminUpdate, callUpdate: callUpdate, refer: refer, confirmArrival: confirmArrival, addSite: addSite, addSites: addSites, updateProfile: updateProfile,
       undoReferral: function (id, opts) { decide(id, "undone", opts); },
       publish: function (id, opts) { decide(id, "published", opts); },
       reject: function (id, opts) { decide(id, "rejected", opts); },

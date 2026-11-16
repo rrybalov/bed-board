@@ -136,6 +136,7 @@
     if (r.source === "referral") return "Claimed through the dashboard" + (who ? " by " + who : "");
     if (r.source === "admin") return "Changed manually by DHS" + (who ? " (" + who + ")" : "") + (r.reason ? " — “" + r.reason + "”" : "");
     if (r.source === "form") return "Provider form" + (r.by ? " — " + r.by : "");
+    if (r.source === "call" && r.call && r.call.declined) return "Declined a client \u2014 " + r.call.declined + " (heard on a Pathways call" + (who ? ", " + who : "") + ")" + (r.call.spokeWith ? ", spoke with " + r.call.spokeWith : "");
     if (r.source === "call") return (r.call && r.call.wasRight === false ? "Board was wrong \u2014 corrected after a Pathways call" : "Confirmed on a Pathways call") + (who ? " (" + who + ")" : "") + (r.call && r.call.spokeWith ? ", spoke with " + r.call.spokeWith : "");
     return "Email from " + orgShort(r.orgId);
   }
@@ -146,6 +147,7 @@
       var off = r.status === "rejected" || r.status === "undone";
       if (r.source === "referral") {
         var rf = r.referral, before = lastPub[rf.siteId], was = null;
+        if (rf.arrival && rf.arrival.status === "noshow") off = true;
         // Take the claimed bed off the running count, so the next update is compared with what the board showed.
         if (before && !off) {
           var nx = JSON.parse(JSON.stringify(before));
@@ -153,7 +155,10 @@
           else if (nx.counts && nx.counts[rf.type] && typeof nx.counts[rf.type][rf.sex] === "number") { was = nx.counts[rf.type][rf.sex]; nx.counts[rf.type][rf.sex] = Math.max(0, was - 1); }
           lastPub[rf.siteId] = nx;
         }
-        items.push({ r: r, siteId: rf.siteId, kind: "referral", lines: ["1 " + bedWord(rf.type, rf.sex, 1).replace(/^1 /, "") + " claimed through the dashboard" + (was !== null ? " (" + was + " → " + Math.max(0, was - 1) + ")" : "")] });
+        var refLines = ["1 " + bedWord(rf.type, rf.sex, 1).replace(/^1 /, "") + " claimed through the dashboard" + (was !== null ? " (" + was + " → " + Math.max(0, was - 1) + ")" : "")];
+        if (rf.arrival) refLines.push(rf.arrival.status === "arrived" ? "Client arrived \u2014 confirmed " + OB.when(rf.arrival.at).label : "Client didn\u2019t arrive \u2014 bed returned " + OB.when(rf.arrival.at).label);
+        else if (!off) refLines.push("Arrival not confirmed yet");
+        items.push({ r: r, siteId: rf.siteId, kind: "referral", lines: refLines });
         return;
       }
       if (r.profile) { items.push({ r: r, siteId: r.profile.siteId, kind: "profile", lines: r.profile.changes.length ? r.profile.changes : ["Facility details saved, no changes"] }); return; }
@@ -239,11 +244,22 @@
   // ---------- email simulator ----------
   function receiveSimulated() {
     var em = { from: $("sim-from").value.trim(), subject: $("sim-subject").value.trim(), body: $("sim-body").value };
-    if (!em.body.trim()) { $("sim-result").innerHTML = '<p class="err">Paste an email body first.</p>'; return; }
+    // Copying a whole message from Outlook brings its header lines along: use them, then drop them.
+    var lines = em.body.replace(/\r/g, "").split("\n"), i = 0, hdr = /^\s*(from|sent|date|to|cc|subject|importance)\s*:/i;
+    while (i < lines.length && (hdr.test(lines[i]) || (!lines[i].trim() && i < 8 && lines.slice(i).some(function (l) { return hdr.test(l); })))) {
+      var m = lines[i].match(/^\s*(from|subject)\s*:\s*(.*)$/i);
+      if (m && m[1].toLowerCase() === "from" && !em.from) { var a = m[2].match(/[^\s<>"]+@[^\s<>"]+/); if (a) em.from = a[0]; }
+      if (m && m[1].toLowerCase() === "subject" && !em.subject) em.subject = m[2].trim();
+      i++;
+    }
+    em.body = lines.slice(i).join("\n");
+    if (!em.body.trim()) { $("sim-result").innerHTML = '<p class="err">Paste the email first.</p>'; return; }
+    if (!em.from) { $("sim-result").innerHTML = '<p class="err">Add the sender\u2019s email address, so the board knows which provider sent it.</p>'; $("sim-from").focus(); return; }
     var r = S.receiveEmail(em);
     var msg = r.status === "published"
-      ? "Published automatically — " + esc(r.parse.summary) + '. <a href="index.html">See the board</a>.'
-      : "Held for review — " + esc((r.parse.warnings || [])[0] || "low confidence") + ".";
+      ? "On the board — " + esc(r.parse.summary) + '. <a href="index.html">See the board</a>.'
+      : "Waiting for review below — " + esc((r.parse.warnings || [])[0] || "the counts weren\u2019t clear") + ".";
+    $("sim-from").value = ""; $("sim-subject").value = ""; $("sim-body").value = ""; $("sim-example").value = "";
     $("sim-result").innerHTML = '<p class="hint" style="margin-top:12px">' + msg + "</p>";
     ui.filter = r.status === "review" ? "review" : "all";
     renderAll();

@@ -270,6 +270,7 @@ async function textSpacing(page) {
   await p.click('#card-cove-forge [data-refer]'); await p.click('#refer-form button[type=submit]'); await scan(p, 'Board · toast + referral marked');
   await p.keyboard.press('Escape');
   await p.click('#card-cove-forge [data-call]'); await scan(p, 'Board · call update dialog'); record('Board · call dialog', await dialogTrap(p, 'Call update dialog'));
+  await p.click('#card-cove-forge [data-call]'); await p.check('input[name="call-right"][value="declined"]'); await p.click('#call-form button[type=submit]'); await scan(p, 'Board · call dialog, decline + error'); await p.keyboard.press('Escape');
   await p.click('#more-btn'); await p.check('#f-serve-pregnant'); await p.check('#f-acc-weekend'); await scan(p, 'Board · who-they-serve filters'); await p.click('#chips [data-clear="all"]'); await p.click('#more-btn');
   await p.click('#card-cove-forge [data-report]'); await scan(p, 'Board · source dialog'); record('Board · source dialog', await dialogTrap(p, 'Source dialog'));
   await p.click('label[for="f-mode-map"]'); await p.fill('#map-q', '15219'); await p.click('#map-form button[type=submit]'); await p.waitForTimeout(200);

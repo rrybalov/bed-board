@@ -475,3 +475,11 @@ h3.sum-h { margin: 0; font-size: inherit; }
   .more-filters .serve-col { grid-column: auto; grid-template-columns: minmax(0, 1fr); }
   .contact-btns .call-btn { margin-left: 0; }
 }
+
+/* ---------- Arrival check after a referral ---------- */
+.arrivals { margin: 6px 0 0; padding: 8px 12px; background: var(--smoke, #F5F5FF); border-radius: 8px; }
+.arrivals .arr-h { margin: 0 0 4px; font-weight: 700; font-size: 14px; }
+.arrivals ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.arrivals li { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 14px; }
+.arrivals .arr-acts { display: flex; gap: 16px; }
+.arrivals .linkbtn { min-height: 24px; }

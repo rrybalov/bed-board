@@ -315,7 +315,7 @@
 
   // ---------- live changes and stale data ----------
   var lastSig = null, storeTick = false, flash = {}, liveTimer = null;
-  function signature(site) { return JSON.stringify([site.report && site.report.id, site.counts, site.shared && site.shared.open, (site.referrals || []).length]); }
+  function signature(site) { return JSON.stringify([site.report && site.report.id, site.counts, site.shared && site.shared.open, (site.referrals || []).length, (site.pendingArrivals || []).length]); }
   function noteChanges(all) {
     var sig = {};
     all.forEach(function (s) { sig[s.id] = signature(s); });
@@ -448,6 +448,16 @@
       unchangedLine(site) +
       '<span class="upd-src">' + esc(OB.sourceText(site.report, S)) + "</span>" +
       '<button type="button" class="linkbtn" data-report="' + esc(site.report.id) + '" data-site="' + esc(site.id) + '" aria-haspopup="dialog">View source<span class="sr"> for ' + esc(site.name) + "</span></button></p>";
+    var waiting = site.pendingArrivals || [];
+    if (waiting.length) {
+      html += '<div class="arrivals"><p class="arr-h">Did they arrive?</p><ul>' + waiting.map(function (w) {
+        var what = optLabel({ type: w.type, sex: w.sex, n: 0 }).split(" \u00b7 ")[0];
+        var tag = esc(what) + " referral, " + esc(dayWord(OB.when(w.receivedAt).label));
+        return '<li><span class="arr-what">' + tag + '</span><span class="arr-acts">' +
+          '<button type="button" class="linkbtn" data-arrive="' + esc(w.id) + '" data-site="' + esc(site.id) + '" data-ok="1">Arrived<span class="sr"> \u2014 ' + tag + " at " + esc(site.name) + "</span></button>" +
+          '<button type="button" class="linkbtn" data-arrive="' + esc(w.id) + '" data-site="' + esc(site.id) + '" data-ok="0">Didn\u2019t arrive<span class="sr"> \u2014 ' + tag + " at " + esc(site.name) + "</span></button></span></li>";
+      }).join("") + "</ul></div>";
+    }
     var refs = site.referrals || [];
     if (refs.length) {
       html += '<p class="upd-ref">' + plural(refs.length, "referral") + " marked since — last " + esc(dayWord(OB.when(refs[0].receivedAt).label)) +
@@ -503,12 +513,16 @@
     var hrs = f.hours || {};
     if (hrs.intake) rows.push(["Intake hours", esc(hrs.intake)]);
     if (hrs.walkin) rows.push(["Walk-in hours", esc(hrs.walkin)]);
-    var accYes = S.sites.access.filter(function (t) { return (f.access || {})[t[0]] === true; }).map(function (t) { return t[2]; });
+    var accYes = S.sites.access.filter(function (t) { return t[0] !== "transport" && (f.access || {})[t[0]] === true; }).map(function (t) { return t[2]; });
     if (accYes.length) rows.push(["Intake", esc(accYes.join(" \u00b7 "))]);
+    var tr = (f.access || {}).transport;
+    if (tr === true) rows.push(["Transport", "Picks clients up"]);
+    else if (tr === false) rows.push(["Transport", "None \u2014 Pathways or the client arranges it"]);
     if (f.payer) rows.push(["Payment", esc(f.payer)]);
     (f.notes || []).forEach(function (x) { rows.push(["Admissions", esc(x)]); });
     var missing = KNOWN.filter(function (k) { return (f.known || []).indexOf(k[0]) < 0; }).map(function (k) { return k[1]; });
     if (!hrs.intake && !hrs.walkin && !accYes.length) missing.push("intake hours");
+    if (tr === undefined) missing.push("transport");
     if (missing.length) rows.push(["Not on file", '<span class="fit-none">' + esc(missing.join(" · ")) + " — ask when you call</span>"]);
     return '<div class="fit"><p class="fit-h">Who they take</p><dl>' + rows.map(function (r) { return "<dt>" + r[0] + "</dt><dd>" + r[1] + "</dd>"; }).join("") + "</dl>" +
       "</div>";
@@ -916,6 +930,7 @@
   // ---------- referrals ----------
   // Marking a referral takes one bed off the site's count for everyone, until the provider reports again.
   var SEXW = { male: "men", female: "women", any: "sex not given" };
+  var DECLINE_REASONS = ["Medical needs they can\u2019t meet", "Doesn\u2019t serve this population", "Prior history with this client", "No bed after all", "Insurance or payment", "Client chose not to go", "Other"];
   function optLabel(o) {
     return (o.type === "shared" ? "Detox or rehab (one count)" : TYPE_LABEL[o.type] + " — " + SEXW[o.sex]) + " · " + o.n + " open";
   }
@@ -960,9 +975,13 @@
     var cur = S.current({ adjusted: true })[siteId];
     var html = '<form id="call-form" novalidate><div class="srcdlg-h"><h2 id="call-h">What did ' + esc(site.name) + " tell you?</h2></div>" +
       '<p class="hint">Record what you heard on the call so the next person sees the right count. Don\u2019t enter client names or details.</p>' +
-      '<fieldset class="refer-opts"><legend class="lbl">Was the board right?</legend>' +
-      '<label class="refer-opt"><input type="radio" name="call-right" value="no" checked> No \u2014 the board was wrong</label>' +
-      '<label class="refer-opt"><input type="radio" name="call-right" value="yes"> Yes \u2014 same as the board</label></fieldset>' +
+      '<fieldset class="refer-opts"><legend class="lbl">What happened?</legend>' +
+      '<label class="refer-opt"><input type="radio" name="call-right" value="no" checked> The board was wrong \u2014 they gave a different count</label>' +
+      '<label class="refer-opt"><input type="radio" name="call-right" value="yes"> The board was right</label>' +
+      '<label class="refer-opt"><input type="radio" name="call-right" value="declined"> They declined the client</label></fieldset>' +
+      '<div id="call-decline" hidden><div class="field"><label class="lbl" for="call-why">Why did they decline?</label><select id="call-why" class="sel-in">' +
+      '<option value="">Choose a reason</option>' + DECLINE_REASONS.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
+      '<p class="hint" style="margin:4px 0 8px">A reason only. Never the client\u2019s name or details.</p></div>' +
       '<div id="call-edit"><p class="hint" style="margin:8px 0">Change only what\u2019s different. <button type="button" class="linkbtn" id="call-full">They\u2019re full \u2014 set every count to 0</button></p>' +
       ED.siteBlock(prof, cur, { prefix: "cu", mode: "admin" }) + "</div>" +
       '<div class="row2"><div class="field"><label class="lbl" for="call-who">Who you spoke with <span class="help">(role, optional)</span></label><input id="call-who" class="input wide" maxlength="40" autocomplete="off" placeholder="e.g. Admissions nurse"></div>' +
@@ -971,7 +990,7 @@
       '<div class="btnrow"><button type="submit" class="btn primary">Update the board</button><button type="button" class="btn" data-close>Cancel</button></div></form>';
     var el = OB.openDialog(html, "call-h");
     el.querySelector("#call-form").addEventListener("change", function (e) {
-      if (e.target.name === "call-right") el.querySelector("#call-edit").hidden = e.target.value === "yes";
+      if (e.target.name === "call-right") { el.querySelector("#call-edit").hidden = e.target.value !== "no"; el.querySelector("#call-decline").hidden = e.target.value !== "declined"; }
     });
     el.querySelector("#call-full").addEventListener("click", function () {
       Array.prototype.forEach.call(el.querySelectorAll("#call-edit .num-in"), function (x) { if (!/^na$/i.test(x.value.trim())) x.value = "0"; });
@@ -979,9 +998,13 @@
     });
     el.querySelector("#call-form").addEventListener("submit", function (e) {
       e.preventDefault();
-      var right = el.querySelector('input[name="call-right"]:checked').value === "yes";
+      var choice = el.querySelector('input[name="call-right"]:checked').value, right = choice !== "no";
       var by = el.querySelector("#call-by").value.trim(), who = el.querySelector("#call-who").value.trim();
-      var entry = null, note = "";
+      var entry = null, note = "", declined = null;
+      if (choice === "declined") {
+        declined = el.querySelector("#call-why").value;
+        if (!declined) { var er = el.querySelector("#call-err"); er.textContent = "Choose why they declined."; er.hidden = false; el.querySelector("#call-why").focus(); return; }
+      }
       if (!right) {
         var res = ED.readSite(prof, { prefix: "cu" });
         var err = el.querySelector("#call-err");
@@ -994,11 +1017,11 @@
         entry = res.entry; note = (res.entry.notes || [])[0] || "";
       }
       saveInitials(by);
-      var r = S.callUpdate({ siteId: siteId, entry: entry, by: by, spokeWith: who, note: note });
+      var r = S.callUpdate({ siteId: siteId, entry: entry, by: by, spokeWith: who, note: note, declined: declined });
       OB.closeDialog();
       var b = document.querySelector('[data-call="' + siteId + '"]'); if (b) b.focus();
       var corrected = r.call.wasRight === false;
-      OB.toast(corrected ? site.name + " updated from your call." : site.name + " confirmed on your call.", function () {
+      OB.toast(declined ? "Decline recorded for " + site.name + ": " + declined.toLowerCase() + "." : corrected ? site.name + " updated from your call." : site.name + " confirmed on your call.", function () {
         S.reject(r.id, { by: "Pathways" + (by ? ": " + by : "") });
         OB.toast("Call update removed. The board is back to what it showed before.");
       });
@@ -1007,7 +1030,21 @@
   document.addEventListener("click", function (e) {
     var cb = e.target.closest("[data-call]");
     if (cb) openCall(cb.getAttribute("data-call"));
+    var ab = e.target.closest("[data-arrive]");
+    if (ab) confirmArrival(ab.getAttribute("data-arrive"), ab.getAttribute("data-site"), ab.getAttribute("data-ok") === "1");
   });
+  // After a referral: did the client get there? "Didn\u2019t arrive" gives the bed back if it\u2019s still held.
+  function confirmArrival(refId, siteId, ok) {
+    var site = S.boardSites().filter(function (x) { return x.id === siteId; })[0];
+    var held = !!(site && (site.referrals || []).some(function (x) { return x.id === refId; }));
+    var by = "Pathways" + (lastInitials() ? ": " + lastInitials() : "");
+    S.confirmArrival(refId, ok ? "arrived" : "noshow", { by: by });
+    var name = site ? site.name : "the facility";
+    OB.toast(ok ? "Arrival confirmed at " + name + "." : held ? "Marked as not arrived. The bed is back on the board at " + name + "." : "Marked as not arrived. " + name + "\u2019s latest count already stands.", function () {
+      S.confirmArrival(refId, null, { by: by });
+      OB.toast("Undone. The referral is waiting for an arrival check again.");
+    });
+  }
   function toast(msg, undoId) {
     OB.toast(msg, undoId ? function () {
       S.undoReferral(undoId, { by: "Pathways" + (lastInitials() ? ": " + lastInitials() : "") });
